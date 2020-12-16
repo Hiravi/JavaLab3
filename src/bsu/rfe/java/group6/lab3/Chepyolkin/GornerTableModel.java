@@ -18,27 +18,43 @@ public class GornerTableModel extends AbstractTableModel {
 
     @Override
     public int getColumnCount() {
-        return 0;
+        return 2;
     }
 
     @Override
     public int getRowCount() {
-        return 0;
+        return new Double(Math.ceil((toX-fromX)/step)).intValue() + 1;
     }
 
     @Override
-    public Object getValueAt(int arg0, int arg1) {
-        return null;
+    public Object getValueAt(int rowIndex, int columnIndex) {
+        Double result;
+        Double x = fromX + rowIndex * step;
+        if (columnIndex == 0) {
+            return x;
+        }
+        else {
+            result = coefficients[0];
+            for (int i = 0; i < coefficients.length - 1; i++) {
+                result = result * x + coefficients[i + 1];
+            }
+            return result;
+        }
     }
 
     @Override
     public Class<?> getColumnClass(int columnIndex) {
-        return super.getColumnClass(columnIndex);
+        return Double.class;
     }
 
     @Override
     public String getColumnName(int column) {
-        return super.getColumnName(column);
+        switch (column) {
+            case 0:
+                return "Значение Х:";
+            default:
+                return "Значение многочлена:";
+        }
     }
 
     // Сеттеры и геттеры

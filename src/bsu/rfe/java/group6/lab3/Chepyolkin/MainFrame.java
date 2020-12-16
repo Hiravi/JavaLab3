@@ -1,31 +1,84 @@
 package bsu.rfe.java.group6.lab3.Chepyolkin;
 
+import javafx.stage.FileChooser;
+
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.PrintStream;
 
 public class MainFrame extends JFrame {
 
     public static final int WIDTH = 720;
     public static final int HEIGHT = 480;
-    JLabel labelStartX = new JLabel("X изменяется на интервале от:");
-    JLabel labelEndX = new JLabel("до:");
-    JLabel labelStep = new JLabel("с шагом:");
-    JTextField fieldStartX = new JTextField("0.0", 10);
-    JTextField fieldEndX = new JTextField("0.0", 10);
-    JTextField fieldStep = new JTextField("0.0", 10);
+    private Double[] coefficients;
+    private JFileChooser fileChooser = null;
+    private GornerTableCellRenderer renderer = new GornerTableCellRenderer();
+    private JMenuItem saveToTextMenuItem;
+    private JMenuItem saveToGraphicsMenuItem;
+    private JMenuItem searchValueMenuItem;
+    private Box hboxResult;
+    private GornerTableModel data;
 
-
-    MainFrame () {
+    MainFrame(Double[] coefficients) {
 
         super("name");
         Toolkit toolkit = Toolkit.getDefaultToolkit();
-        setBounds((toolkit.getScreenSize().width - WIDTH) / 2, (toolkit.getScreenSize().height - HEIGHT) / 2, WIDTH, HEIGHT);
+        setBounds((toolkit.getScreenSize().width - WIDTH) / 2, (toolkit.getScreenSize().height - HEIGHT) / 2,
+                WIDTH, HEIGHT);
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+
+        this.coefficients = coefficients;
+
+        // Поля ввода данных с названиями
+        JLabel labelStartX = new JLabel("X изменяется на интервале от:");
+        JLabel labelEndX = new JLabel("до:");
+        JLabel labelStep = new JLabel("с шагом:");
+        JTextField fieldStartX = new JTextField("0.0", 10);
+        JTextField fieldEndX = new JTextField("0.0", 10);
+        JTextField fieldStep = new JTextField("0.0", 10);
 
         // Выпадающее меню "Файл"
         JMenuBar menuBar = new JMenuBar();
         JMenu fileMenu = new JMenu("Файл");
+        JMenu tableMenu = new JMenu("Таблица");
+        menuBar.add(fileMenu);
+        setJMenuBar(menuBar);
+
+        // Обработка активации "Сохранить в текстовый файл"
+        Action saveToFileAction = new AbstractAction("Сохранить в текстовом файле") {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (fileChooser == null) {
+                    fileChooser = new JFileChooser();
+                    fileChooser.setCurrentDirectory(new File("."));
+                }
+                if (fileChooser.showSaveDialog(MainFrame.this) == JFileChooser.APPROVE_OPTION) {
+                    saveToTextFile(fileChooser.getSelectedFile());
+                }
+            }
+        };
+
+        // Добавить пункт "Сохранить в текстовый файл" в меню "Файл"
+        saveToTextMenuItem = fileMenu.add(saveToFileAction);
+        saveToGraphicsMenuItem.setEnabled(false);
+
+        // Создать новое действие по поиску значений многочлена
+        Action searchValueAction = new AbstractAction("Найти значение многочлена") {
+            public void actionPerformed(ActionEvent event) {
+
+                // Запросить пользователя ввести искомую строку
+                String value = JOptionPane.showInputDialog(MainFrame.this, "Введите значение для поиска",
+                                "Поиск значения", JOptionPane.QUESTION_MESSAGE);
+                // Установить введенное значение в качестве иголки
+                renderer.setNeedle(value);
+
+                // Обновить таблицу
+                getContentPane().repaint();//метод JFrame
+            }
+        };
 
         // Контейнер ввода данных
         fieldStartX.setMaximumSize(fieldStartX.getPreferredSize());
@@ -47,17 +100,9 @@ public class MainFrame extends JFrame {
         hboxDataFilds.add(Box.createHorizontalGlue());
 
 
-
-
-
-
-
-
-
-
-
         // Кнопка "Вычислить"
-       /* buttonCalc.addActionListener(new ActionListener() {
+       /* JButton buttonCalc = new JButton();
+       buttonCalc.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 try {
@@ -90,8 +135,37 @@ public class MainFrame extends JFrame {
             }
         });*/
 
+    }
+
+    protected void saveToTextFile(File selectedFile) {
+
+        try {
+
+            PrintStream out = new PrintStream(selectedFile);
+            out.println("Результаты табулированных вычислений по схеме Горнера");
+            out.print ("Многочлен: ");
+            for (int i=0; i<coefficients.length; i++) {
+                out.print(coefficients[i] + "*X^" +
+                        (coefficients.length-i-1));
+                if (i!=coefficients.length-1)
+                    out.print(" + ");
+            }
+            out.println("");
+            out.println("Интервал от " + data.getFromX() + " до " +
+                    data.getToX() + " с шагом " + data.getStep());
+            out.println("====================================================");
+            // Записать в поток вывода значения в точках
+            for (int i = 0; i<data.getRowCount(); i++) {
+                out.println("Значение в точке " + data.getValueAt(i,0)
+                        + " равно " + data.getValueAt(i,1));
+            }
+            // Закрыть поток
+            out.close();
 
 
+        }
+        catch (FileNotFoundException e) {
 
+        }
     }
 }
