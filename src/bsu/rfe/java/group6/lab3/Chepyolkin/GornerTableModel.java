@@ -3,82 +3,83 @@ package bsu.rfe.java.group6.lab3.Chepyolkin;
 import javax.swing.table.AbstractTableModel;
 
 public class GornerTableModel extends AbstractTableModel {
-
     private Double[] coefficients;
-    private Double fromX;
-    private Double toX;
+    private Double from;
+    private Double to;
     private Double step;
-
-    public GornerTableModel(Double[] coefficients, Double fromX, Double toX, Double step) {
-        this.coefficients = coefficients;
-        this.fromX = fromX;
-        this.toX = toX;
+    public GornerTableModel(Double from, Double to, Double step,
+                            Double[] coefficients) {
+        this.from = from;
+        this.to = to;
         this.step = step;
+        this.coefficients = coefficients;
     }
-
-    @Override
-    public int getColumnCount() {
-        return 2;
+    public Double getFrom() {
+        return from;
     }
-
-    @Override
-    public int getRowCount() {
-        return new Double(Math.ceil((toX-fromX)/step)).intValue() + 1;
+    public Double getTo() {
+        return to;
     }
-
-    @Override
-    public Object getValueAt(int rowIndex, int columnIndex) {
-        Double result;
-        Double x = fromX + rowIndex * step;
-        if (columnIndex == 0) {
-            return x;
-        }
-        else {
-            result = coefficients[0];
-            for (int i = 0; i < coefficients.length - 1; i++) {
-                result = result * x + coefficients[i + 1];
-            }
-            return result;
-        }
-    }
-
-    @Override
-    public Class<?> getColumnClass(int columnIndex) {
-        return Double.class;
-    }
-
-    @Override
-    public String getColumnName(int column) {
-        switch (column) {
-            case 0:
-                return "Значение Х:";
-            default:
-                return "Значение многочлена:";
-        }
-    }
-
-    // Сеттеры и геттеры
-    public Double getFromX() {
-        return fromX;
-    }
-
-    public void setFromX(Double fromX) {
-        this.fromX = fromX;
-    }
-
-    public Double getToX() {
-        return toX;
-    }
-
-    public void setToX(Double toX) {
-        this.toX = toX;
-    }
-
     public Double getStep() {
         return step;
     }
+    public int getColumnCount() {
+        return 3;
+    }
+    public int getRowCount() {
+        // Вычислить количество точек между началом и концом отрезка
+        // исходя из шага табулирования
+        return new Double(Math.ceil((to-from)/step)).intValue() + 1;
+    }
+    public Object getValueAt(int row, int col) {
+        // Вычислить значение X как НАЧАЛО_ОТРЕЗКА + ШАГ*НОМЕР_СТРОКИ
+        double x = from + step * row;
+        if (col==0) {
+            // Если запрашивается значение 1-го столбца, то это X
+            return x;
+        } else {
+            // Если запрашивается значение 2-го столбца, то это значение многочлена
+            Double result = 0.0;
+            if (col == 1) {
+                result = coefficients[0];
+                for (int i = 0; i < coefficients.length - 1; i++) {
+                    result = result * x + coefficients[i + 1];
+                }
+                return result;
+            } else {
+                // 3-й столбец
+                result = coefficients[0];
+                Boolean resultBoolean;
+                for (int i = 0; i < coefficients.length - 1; i++) {
+                    result = result * x + coefficients[i + 1];
+                }
+                String[] a = String.valueOf(result).split("[.]");
+                int _int = Integer.parseInt(a[0]);
 
-    public void setStep(Double step) {
-        this.step = step;
+                if (_int == 0) {
+                    resultBoolean = true;
+                } else {
+                    resultBoolean = false;
+                }
+                return resultBoolean;
+            }
+        }
+    }
+    public String getColumnName(int col) {
+        switch (col) {
+            case 0:
+                return "Значение X";
+            case 1:
+                return "Значение многочлена";
+            default:
+                return "Дробная часть является квадратом?";
+        }
+    }
+    public Class<?> getColumnClass(int col) {
+        // И в 1-ом и во 2-ом столбце находятся значения типа Double
+        if(col == 2)
+            return Boolean.class;
+        else
+            return Double.class;
     }
 }
